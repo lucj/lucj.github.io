@@ -507,6 +507,10 @@ count: false
   ```
 ]
 ---
+class: center, middle, inverse
+# Exercices
+## [Images](https://github.com/lucj/docker-labs/tree/master/3.Images/exercices)
+---
 name: components
 class: center, inverse
 # Les composants
@@ -573,7 +577,6 @@ class: center, inverse
 name: base-commands
 class: center, middle, inverse
 # Les commandes de base
-## let's play with containers
 ---
 .left-column[
   ### run
@@ -773,9 +776,7 @@ docker container rm -f $(docker container ls -q)
 ---
 class: center, middle, inverse
 # Exercices
-## [Les commandes de base](http://labs.techwhale.io/containers-base-commands-fr/)
-## [Création d'image](http://labs.techwhale.io/images-creation-fr/)
-## [https://github.com/lucj/docker-labs](https://github.com/lucj/docker-labs)
+## [Les commandes de base](https://github.com/lucj/docker-labs/tree/master/2.Plateforme/exercices)
 ---
 name: compose
 class: center, middle, inverse
@@ -821,7 +822,7 @@ class: center, middle, inverse
 ]
 
 .pull-right[
-  ```
+```
 version: "3"
 services:
   db:
@@ -847,7 +848,7 @@ volumes:
 networks:
   frontend:
   backend:
-  ```
+```
 ]
 
 [https://docs.docker.com/compose/compose-file/](https://docs.docker.com/compose/compose-file/)
@@ -905,13 +906,670 @@ docker-compose [-f <arg>...] [options] [COMMAND] [ARGS...]
 ---
 class: center, middle, inverse
 # Exercices
-## [https://github.com/lucj/docker-labs](https://github.com/lucj/docker-labs)
+## [Docker Compose](https://github.com/lucj/docker-labs/tree/master/7.Compose/exercices)
 ---
-name: last-page
+name: volume
 class: center, middle, inverse
-# Merci
-Slides sur [http://lucj.github.io/ntdp/docker](http://lucj.github.io/ntdp/docker)
-.footnote[Slideshow créé avec [remark](http://github.com/gnab/remark)]
+# Volume
+![Volume](./images/docker-volume.png)
+---
+.left-column[
+## Utilisation
+]
+.right-column[
+- Un container ne permet pas la persistance des données
+
+- Changements dans la layer du container
+  - read-write layer au dessus de l’image
+  - créée et supprimée avec le container 
+
+- Pour être persistées, les données doivent être gérées en dehors de l’union filesystem
+
+- Répertoires / fichiers existant en dehors de l’union filesystem
+
+- Utilisé pour découpler les données du cycle de vie d’un container
+
+- Peut être défini de plusieurs façons
+  - instruction VOLUME dans le Dockerfile
+  - option -v à la création d’un container
+  - via la CLI de l’image
+]
+---
+.left-column[
+## Utilisation
+## Dockerfile
+]
+.right-column[
+Instuction VOLUME spécifiée dans un Dockerfile
+```
+FROM nginx:1.11.8
+VOLUME /usr/share/nginx/html
+CMD ["nginx","-g","daemon off;"]
+```
+
+Construction de l'image
+```
+$ docker image build -t mynginx .
+```
+
+Lancement d'un container
+```
+$ docker run -d --name mynginx -p 8080:80 mynginx
+```
+
+Inspection du container
+```
+$ docker inspect -f '{{json .Mounts }}' mynginx | python -m json.tool
+[
+    {
+        "Name": "2fd...b38bb91a524d",
+        "Source": "/var/lib/docker/volumes/2fd...b38bb91a524d/_data",
+        "Destination": "/usr/share/nginx/html",
+	"Driver": "local",
+        "Type": "volume"
+    }
+]
+```
+]
+---
+.left-column[
+## Utilisation
+## Dockerfile
+## Runtime
+]
+.right-column[
+Option -v dans la command docker container run
+```
+$ docker container run -v /usr/share/nginx/html nginx
+```
+
+Même résultat que la définition dans le Dockerfile
+
+Création d’un volume et copie du contenu du répertoire du container
+
+```
+$ docker container run -d --name nginx -p 8080:80 -v /usr/share/nginx/html nginx
+
+$ docker container inspect -f '{{json .Mounts }}' nginx | python -m json.tool
+[
+    {
+        "Destination": "/usr/share/nginx/html",
+        "Driver": "local",
+        "Name": "b1c...3a046a933871af65",
+        "Source": "/var/lib/docker/volumes/b1c...3a046a933871af65/_data",
+        "Type": "volume"
+    }
+]
+
+/# ls /var/lib/docker/volumes/b1c...3a046a933871af65/_data
+50x.html    index.html
+```
+]
+---
+.left-column[
+## Utilisation
+## Dockerfile
+## Runtime
+## Bind-mount
+]
+.right-column[
+- Répertoire de l’hôte monté dans un container
+
+- A la création d’un container avec l’option -v
+```
+$ docker container run -v HOST_PATH/CONTAINER_PATH …
+```
+
+- Plusieurs cas d’usage
+  - dev: montage du code source dans un container
+  - accès à la socket unix du daemon Docker
+  - écoute des évènements du Docker daemon / Swarm
+
+- Contenu du répertoire de l’hôte “cache” celui du répertoire du container
+
+```
+$ mkdir /tmp/myfolder && touch /tmp/myfolder/file_from_host
+
+$ docker container run -ti -v /tmp/myfolder:/tmp alpine sh
+
+/ # ls /tmp/
+file_from_host
+
+/ # touch /tmp/file/file_from_container
+
+$ ls /tmp/myfolder
+file_from_host file_from_container
+```
+]
+---
+class: center, middle, inverse
+# Exercices
+## [Volumes](https://github.com/lucj/docker-labs/blob/master/5.Volume/exercices)
+---
+name: machine
+class: center, middle, inverse
+# Docker Machine
+![Docker Machine](./images/docker-machine.png)
+---
+.left-column[
+## Présentation
+]
+.right-column[
+- Outil permettant de créer des hotes Docker
+
+- Instantiation d'une machine virtuelle
+
+- Installation du client + daemon Docker
+
+- [https://docs.docker.com/machine/install-machine](https://docs.docker.com/machine/install-machine)
+
+]
+---
+.left-column[
+## Présentation
+## Environnement
+]
+.right-column[
+- Localement
+  - Oracle Virtualbox
+  - VMWare
+
+- Sur une infrastructure cloud
+  - DigitalOcean
+  - Amazon Web Service
+  - Microsoft Azure
+  - Google Compute Engine
+  - ...
+
+- Generique
+]
+---
+.left-column[
+## Présentation
+## Environnement
+## Commandes
+]
+.right-column[
+- $ docker-machine --help
+
+- Gestion du cycle de vie
+  - create, rm, start, stop, restart, kill, upgrade, ls, scp, ssh
+
+- Information sur l’hôte
+  - ip, url, config, status, version
+]
+---
+.left-column[
+## Présentation
+## Environnement
+## Commandes
+## Création
+]
+.right-column[
+- $ docker-machine create [OPTIONS] [arg...]
+
+- Option --driver DRIVER à spécifier
+
+- Options spécifiques au driver utilisé
+  - identifiants du cloud provider
+  - type d’instance (région, RAM, cpu, …)
+  - ...
+
+- Options non spécifiques au driver utilisé
+]
+---
+.left-column[
+## Présentation
+## Environnement
+## Commandes
+## Création
+### Virtualbox
+]
+.right-column[
+
+- Options par défaut
+```
+$ docker-machine create --driver virtualbox node1
+```
+
+- Exemples d'options additionnelles
+```
+$ docker-machine create --driver virtualbox \
+--virtualbox-memory=2048 \
+--virtualbox-disk-size=5000 \
+node2
+```
+
+- Liste des options
+  [https://docs.docker.com/machine/drivers/virtualbox/#/options](https://docs.docker.com/machine/drivers/virtualbox/#/options)
+]
+---
+.left-column[
+## Présentation
+## Environnement
+## Commandes
+## Création
+### Virtualbox
+]
+.right-column[
+![Virtualbox](./images/virtualbox.png)
+]
+---
+.left-column[
+## Présentation
+## Environnement
+## Commandes
+## Création
+### Virtualbox
+### DigitalOcean
+]
+.right-column[
+- Options par défaut
+```
+$ docker-machine create \
+  --driver digitalocean \
+  --digitalocean-access-token=$TOKEN \
+  node1
+```
+
+- Exemple d'options additonnelles
+```
+$ docker-machine create \
+  --driver digitalocean \
+  --digitalocean-access-token=$TOKEN \
+  --digitalocean-region=lon1 \
+  --digitalocean-size=1gb \
+  node2
+```
+
+- Liste des options
+  [https://docs.docker.com/machine/drivers/digital-ocean/#/options](https://docs.docker.com/machine/drivers/digital-ocean/#/options)
+]
+---
+.left-column[
+## Présentation
+## Environnement
+## Commandes
+## Création
+### Virtualbox
+### DigitalOcean
+### Amazon AWS
+]
+.right-column[
+- Options par défaut
+```
+$ docker-machine create --driver amazonec2 \
+--amazonec2-access-key=${ACCESS_KEY_ID} \
+--amazonec2-secret-key=${SECRET_ACCESS_KEY} \
+node1
+```
+
+- Exemple d'options additionnelles
+```
+$ docker-machine create --driver amazonec2 \
+--amazonec2-access-key=${ACCESS_KEY_ID} \
+--amazonec2-secret-key=${SECRET_ACCESS_KEY} \
+--amazonec2-region=eu-west-1 \
+--amazonec2-ami=ami-ed82e39e \
+--amazonec2-instance-type=t2.large \
+node2
+```
+
+- Liste des options
+  [https://docs.docker.com/machine/drivers/aws/#/options](https://docs.docker.com/machine/drivers/aws/#/options)
+]
+---
+.left-column[
+## Présentation
+## Environnement
+## Commandes
+## Création
+### Virtualbox
+### DigitalOcean
+### Amazon AWS
+## Utilisation
+]
+.right-column[
+- Client local communique avec le daemon local par défaut (via unix socket)
+
+- Variables d’environnement pour cibler un hôte distant
+```
+$ docker-machine env node1
+export DOCKER_TLS_VERIFY="1"
+export DOCKER_HOST="tcp://192.168.99.102:2376"
+export DOCKER_CERT_PATH="/Users/luc/.docker/machine/machines/node1"
+export DOCKER_MACHINE_NAME="node1"
+```
+
+- Définition des variables d’environnement
+```
+$ eval $(docker-machine env node1)
+```
+
+- Commandes lancées sur l'hôte distant
+```
+$ docker image ls
+```
+
+- Suppression des variables pour cibler le daemon local
+```
+$ eval $(docker-machine env -u)
+$ docker image ls
+```
+]
+---
+name: swarm
+class: center, middle, inverse
+# Docker Swarm
+![Docker Swarm](./images/docker-swarm.png)
+---
+.left-column[
+## Swarm mode
+]
+.right-column[
+- Solution d'orchestration de Docker
+
+- Intégrée au daemon Docker (depuis Docker 1.12)
+
+- Plusieurs primitives de base
+
+  - Node: machine membre d’un cluster Swarm
+
+  - Service: définition de la façon de lancer les containers d’une application
+
+  - Stack: groupe de services
+
+  - Secret: gestion des informations confidentielles
+
+  - Config: gestion des configuration applicatives
+]
+---
+.left-column[
+## Swarm mode
+## Securité 
+]
+.right-column[
+Communication entre les nodes sécurisée par défaut
+
+![Swarm nodes](./images/swarm-1.png)
+]
+---
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+]
+.right-column[
+- Machine faisant partie du Swarm
+
+- Manager
+
+  - schedule et orchestre les containers
+
+  - gère l’état  du cluster
+
+  - algorithme de consensus RAFT
+
+- Worker
+
+  - exécute les containers
+
+![Swarm nodes](./images/swarm-2.png)
+]
+---
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+]
+.right-column[
+- Active
+
+  - le scheduler peut assigner des tâches à ce node
+
+- Pause
+
+  - le scheduler ne peut pas assigner de nouvelles tâches à ce node
+
+  - les tâches tournant sur ce node sont inchangées
+
+- Drain
+
+  - le scheduler ne peut pas assigner de nouvelles tâches à ce node
+
+  - les tâches tournant sur ce node sont stoppées et relancées sur d’autres nodes
+]
+---
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+## Création
+]
+.right-column[
+Le node sur lequel le Swarm est initialisé devient Leader
+```
+docker@node1:~$ docker swarm init
+Swarm initialized: current node (3gd0odtwxxp6nvomf3xfv05ww) is now a manager.
+To add a worker to this swarm, run the following command:
+    docker swarm join \
+    --token SWMTKN-1-07990i...8drzgq5b1377rsre4 \
+    192.168.99.110:2377
+To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+```
+
+Ajout d'un worker
+```
+docker@node2:~$ docker swarm join \
+  --token SWMTKN-1-07990i...8drzgq5b1377rsre4 \
+  192.168.99.100:2377
+This node joined a swarm as a worker.
+```
+]
+---
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+## Création
+]
+.right-column[
+Récupération d’un token depuis le premier manager
+```
+docker@node1:~$ docker swarm join-token manager
+To add a manager to this swarm, run the following command:
+  docker swarm join \
+  --token SWMTKN-1-07990i...k3hyxqijes0mpanl5yax1 \
+  192.168.99.100:2377
+```
+
+Ajout d'un second manager
+```
+docker@node3:~$ docker swarm join \
+  --token SWMTKN-1-07990i...k3hyxqijes0mpanl5yax1 \
+  192.168.99.100:2377
+This node joined a swarm as a manager.
+```
+
+Un manager non Leader a le statut Reachable
+```
+docker@node1:~$ docker node ls
+ID            HOSTNAME STATUS AVAILABILITY MANAGER STATUS
+1m9...eppp    node3    Ready  Active       Reachable
+lf2...lxjq *  node1    Ready  Active       Leader
+pes...xx54    node2    Ready  Active
+```
+]
+---
+class: center, middle, inverse
+# Démo
+## Création d'un swarm
+---
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+## Création
+## Service
+]
+.right-column[
+- Définition de la façon de lancer les containers d’une application
+
+- Boucle de réconciliation 
+
+- Mode répliqué ou global
+
+- Adresse IP virtuelle associée à chaque service
+
+- Load balancer de niveau 4 (IPVS)
+
+- Publication d’un port sur l'ensemble des membres du cluster (Routing Mesh)
+
+- Configuration
+
+  - image utilisée
+  - nombre de réplicas
+  - ports exposés
+  - stratégie de redémarrage
+  - contraintes de déploiement
+  - configuration des mises à jour
+  - Health check
+]
+---
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+## Création
+## Service
+]
+.right-column[
+- Définition d’un nombre de réplicas
+
+- Instancié en une ou plusieurs tâches
+
+- Chaque tâche est déployée sur un node
+
+- Une tâche exécute un container
+
+![Service Tasks](./images/docker-service-tasks.png)
+]
+---
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+## Création
+## Service
+]
+.right-column[
+## Exemples de création de services
+
+Publication d'un port et nombre de réplicas
+```
+$ docker service create \
+  --name www \
+  --publish 8080:80 \
+  --replicas 3 nginx
+```
+
+Utilisation d'un volume
+```
+$ docker service create \
+  --mount type=volume,src=data,dst=/data/db  \
+  --name db \
+  --publish 27017:27017 mongo:3.4
+```
+
+Options de rolling upgrade
+```
+$ docker service create  \
+  --update-parallelism 2 \
+  --update-delay 10s     \
+  --publish 8080:80      \
+  --name vote instavote/vote
+```
+
+[Autres options pour la création d'un service](https://docs.docker.com/engine/reference/commandline/service_create/)
+]
+---
+class: center, middle, inverse
+# Démo
+## Déploiement de services
+---
+name: stack
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+## Création
+## Service
+## Stack
+]
+.right-column[
+## Ensemble de services
+
+- définie dans un fichier Compose
+
+- gestion avec la CLI
+
+```
+$ docker stack --help
+```
+
+Exemple avec la Voting App
+```
+$ docker stack deploy -c docker-stack.yml vote
+Creating network vote_backend
+Creating network vote_default
+Creating network vote_frontend
+Creating service vote_worker
+Creating service vote_visualizer
+Creating service vote_redis
+Creating service vote_db
+Creating service vote_vote
+Creating service vote_result
+```
+]
+---
+.left-column[
+## Swarm mode
+## Securité 
+## Node
+## Création
+## Service
+## Stack
+]
+.right-column[
+Liste des stacks déployées
+```
+$ docker stack ls
+NAME    SERVICES
+vote    6
+```
+
+Liste des services composant la stack
+```
+$ docker stack ps vote
+```
+]
+---
+class: center, middle, inverse
+# Démo
+## Déploiement d'une stack
+---
+class: center, middle, inverse
+# Exercices
+## [Swarm](https://github.com/lucj/docker-labs/tree/master/8.Swarm/exercices)
+---
+name: questions
+class: center, middle, inverse
+# Des questions ?
+---
+name: thanks
+class: center, middle, inverse
+# Merci de votre attention
+.footnote[Présentation réalisée avec [remark](http://github.com/gnab/remark)]
 
     </textarea>
     <script src="https://remarkjs.com/downloads/remark-latest.min.js" type="text/javascript">
