@@ -124,7 +124,7 @@
 class: center, middle, inverse
 # La plateforme Docker
 ## Introduction
-.footnote[@lucjuggery - Miage / NTDP - 13/11/2017]
+.footnote[@lucjuggery - Miage / NTDP - 11/2017]
 ---
 name: agenda
 class: inverse
@@ -150,7 +150,7 @@ class: inverse
 ---
 name:quickwins
 .left-column[
-  ## Quick Wins
+  ## 1. Quick Wins
 ]
 .right-column[
   La plateforme Docker permet notamment
@@ -280,10 +280,9 @@ count: false
 ---
 name: containers
 class: center, middle, inverse
-# Les containers Linux
+# 2. Les containers Linux
 ![Container](./images/container.png)
 ---
-name: containers-details
 .left-column[
   ## Processus
 ]
@@ -342,10 +341,9 @@ Afin de limiter l'utilisation des ressources
 ---
 name: images
 class: center, middle, inverse
-# Les images Docker
+# 3. Les images Docker
 ![Image layers](./images/image_layers.png)
 ---
-name: images-details
 .left-column[
   ## Définition
 ]
@@ -518,9 +516,8 @@ class: center, middle, inverse
 ## [Images](https://github.com/lucj/docker-labs/tree/master/3.Images/exercices)
 ---
 name: components
-class: center, inverse
-# Les composants
-![Docker components](./images/docker-components.png)
+class: center, middle, inverse
+# 4. Les composants
 ---
 .left-column[
   ## Architecture
@@ -568,9 +565,9 @@ class: center, inverse
 ]
 ---
 .left-column[
-  ## Architecture
-  ## Serveur
-  ## Client
+## Architecture
+## Serveur
+## Client
 ]
 .right-column[
 - Communique avec le serveur local via une socket unix
@@ -580,9 +577,19 @@ class: center, inverse
 - $DOCKER_HOST pour cibler un serveur distant
 ]
 ---
+.left-column[
+## Architecture
+## Serveur
+## Client
+## Flow
+]
+.right-column[
+![Docker components](./images/flow.png)
+]
+---
 name: base-commands
 class: center, middle, inverse
-# Les commandes de base
+# 5. Les commandes de base
 ---
 .left-column[
   ### run
@@ -786,7 +793,7 @@ class: center, middle, inverse
 ---
 name: compose
 class: center, middle, inverse
-# Docker Compose
+# 6. Docker Compose
 ![Docker Compose](./images/compose.png)
 ---
 .left-column[
@@ -916,7 +923,7 @@ class: center, middle, inverse
 ---
 name: volume
 class: center, middle, inverse
-# Volume
+# 7. Volume
 ![Volume](./images/docker-volume.png)
 ---
 .left-column[
@@ -925,20 +932,17 @@ class: center, middle, inverse
 .right-column[
 - Un container ne permet pas la persistance des données
 
-- Changements dans la layer du container
-  - read-write layer au dessus de l’image
-  - créée et supprimée avec le container 
-
 - Pour être persistées, les données doivent être gérées en dehors de l’union filesystem
 
-- Répertoires / fichiers existant en dehors de l’union filesystem
+- Volumes utilisés pour découpler les données du cycle de vie d’un container
 
-- Utilisé pour découpler les données du cycle de vie d’un container
+- Défini de différents façons
 
-- Peut être défini de plusieurs façons
   - instruction VOLUME dans le Dockerfile
+
   - option -v à la création d’un container
-  - via la CLI de l’image
+
+  - via la CLI
 ]
 ---
 .left-column[
@@ -1054,16 +1058,18 @@ class: center, middle, inverse
 ---
 name: machine
 class: center, middle, inverse
-# Docker Machine
+# 8. Docker Machine
 ![Docker Machine](./images/docker-machine.png)
 ---
 .left-column[
 ## Présentation
 ]
 .right-column[
-- Outil permettant de créer des hotes Docker
+- Outil permettant de créer des hôtes Docker
 
 - Instantiation d'une machine virtuelle
+
+- Utilisation d'une machine physique
 
 - Installation du client + daemon Docker
 
@@ -1087,7 +1093,7 @@ class: center, middle, inverse
   - Google Compute Engine
   - ...
 
-- Generique
+- Générique
 ]
 ---
 .left-column[
@@ -1266,7 +1272,7 @@ $ docker image ls
 ---
 name: swarm
 class: center, middle, inverse
-# Docker Swarm
+# 9. Docker Swarm
 ![Docker Swarm](./images/docker-swarm.png)
 ---
 .left-column[
@@ -1277,17 +1283,21 @@ class: center, middle, inverse
 
 - Intégrée au daemon Docker (depuis Docker 1.12)
 
+- Définit un cluster d'hôtes Docker
+
+- Gère les applications tournant sur le cluter
+
 - Plusieurs primitives de base
 
-  - Node: machine membre d’un cluster Swarm
+  - Node: machine membre du cluster
 
-  - Service: définition de la façon de lancer les containers d’une application
+  - Service: définition des containers de l'applicatio
 
   - Stack: groupe de services
 
   - Secret: gestion des informations confidentielles
 
-  - Config: gestion des configuration applicatives
+  - Config: gestion de la configuration applicative
 ]
 ---
 .left-column[
@@ -1295,9 +1305,15 @@ class: center, middle, inverse
 ## Securité 
 ]
 .right-column[
-Communication entre les nodes sécurisée par défaut
+- Communication sécurisée par défaut
+
+- TLS entre chaque machine du cluster via CA
 
 ![Swarm nodes](./images/swarm-1.png)
+
+- Encryption des informations "at rest"
+
+- Lock manuel du cluster 
 ]
 ---
 .left-column[
@@ -1440,6 +1456,7 @@ class: center, middle, inverse
   - contraintes de déploiement
   - configuration des mises à jour
   - Health check
+  - ...
 ]
 ---
 .left-column[
@@ -1557,6 +1574,14 @@ vote    6
 Liste des services composant la stack
 ```
 $ docker stack ps vote
+ID    NAME              IMAGE                              NODE   DESIRED STATE CURRENT STATE         ERROR PORTS
+z4z.. vote_db.1         postgres:9.4                       node1  Running       Running 3 minutes ago
+zt4.. vote_redis.1      redis:alpine                       node2  Running       Running 3 minutes ago
+wgp.. vote_visualizer.1 dockersamples/visualizer:stable    node3  Running       Running 3 minutes ago
+fb6.. vote_worker.1     dockersamples/vote_worker:latest   node1  Running       Running 4 minutes ago
+uow.. vote_result.1     dockersamples/vote_result:before   node2  Running       Running 4 minutes ago
+cpk.. vote_vote.1       dockersamples/vote_vote:before     node3  Running       Running 4 minutes ago
+pkg.. vote_vote.2       dockersamples/vote_vote:before     node4  Running       Running 4 minutes ago
 ```
 ]
 ---
