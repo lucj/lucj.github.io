@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="keywords" content="remark,remarkjs,markdown,slideshow,presentation" />
+    <meta name="description" content="A simple, in-browser, markdown-driven slideshow tool." />
+    <title>Docker</title>
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif);
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body {
+        font-family: 'Droid Serif';
+      }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: 400;
+        margin-bottom: 0;
+      }
+      .remark-slide-content h1 { font-size: 3em; }
+      .remark-slide-content h2 { font-size: 2em; }
+      .remark-slide-content h3 { font-size: 1.6em; }
+      .footnote {
+        position: absolute;
+        bottom: 3em;
+      }
+      li p { line-height: 1.25em; }
+      .red { color: #fa0000; }
+      .large { font-size: 2em; }
+      a, a > code {
+        color: rgb(249, 38, 114);
+        text-decoration: none;
+      }
+      code {
+        background: #e7e8e2;
+        border-radius: 5px;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .remark-code-line-highlighted     { background-color: #373832; }
+      .pull-left {
+        float: left;
+        width: 47%;
+      }
+      .pull-right {
+        float: right;
+        width: 47%;
+      }
+      .pull-right ~ p {
+        clear: both;
+      }
+      #slideshow .slide .content code {
+        font-size: 0.8em;
+      }
+      #slideshow .slide .content pre code {
+        font-size: 0.9em;
+        padding: 15px;
+      }
+      .inverse {
+        background: #272822;
+        color: #777872;
+        text-shadow: 0 0 20px #333;
+      }
+      .inverse h1, .inverse h2 {
+        color: #f3f3f3;
+        line-height: 0.8em;
+      }
+
+      /* Slide-specific styling */
+      #slide-inverse .footnote {
+        bottom: 12px;
+        left: 20px;
+      }
+      #slide-how .slides {
+        font-size: 0.9em;
+        position: absolute;
+        top:  151px;
+        right: 140px;
+      }
+      #slide-how .slides h3 {
+        margin-top: 0.2em;
+      }
+      #slide-how .slides .first, #slide-how .slides .second {
+        padding: 1px 20px;
+        height: 90px;
+        width: 120px;
+        -moz-box-shadow: 0 0 10px #777;
+        -webkit-box-shadow: 0 0 10px #777;
+        box-shadow: 0 0 10px #777;
+      }
+      #slide-how .slides .first {
+        background: #fff;
+        position: absolute;
+        top: 20%;
+        left: 20%;
+        z-index: 1;
+      }
+      #slide-how .slides .second {
+        position: relative;
+        background: #fff;
+        z-index: 0;
+      }
+
+      /* Two-column layout */
+      .left-column {
+        color: #777;
+        width: 20%;
+        height: 92%;
+        float: left;
+      }
+        .left-column h2:last-of-type, .left-column h3:last-child {
+          color: #000;
+        }
+      .right-column {
+        width: 75%;
+        float: right;
+        padding-top: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle, inverse
+# La plateforme Docker
+## Introduction
+.footnote[@lucjuggery - 11/2017]
+---
+name: agenda
+class: inverse
+## Au sommaire
+
+1. Quick Wins
+
+2. Les containers Linux
+
+3. Les images Docker
+
+4. Les composants
+
+5. Les commandes de base
+
+## Exercices
+
+- [labs en ligne](http://labs.techwhale.io/) (nécessite un compte Docker Hub)
+- ou en [local](https://github.com/lucj/docker-exercices)
+---
+name:quickwins
+.left-column[
+  ## 1. Quick Wins
+]
+.right-column[
+  La plateforme Docker permet notamment
+
+  - d'avoir une multitude de logiciels à portée de main
+
+  - d'utiliser des versions différentes sans les installer en local
+
+  - d'avoir accès à des stacks technologiques complexes
+
+  - de mettre en place un pipeline CI/CD facilement
+]
+---
+name:quickwins-mongo
+.left-column[
+  ## Quick Wins
+  ### - exemple 1
+]
+.right-column[
+  Lancer une base MongoDB c'est aussi simple que 
+
+  ```
+  docker container run -p 27017:27017 -d mongo:3.2
+  ```
+
+  Vous voulez tester la version 3.4 ?
+
+  ```
+  docker container run -p 27017:27017 -d mongo:3.4
+  ```
+
+  La base est disponible localement
+
+  ![MongoDB Compass](./images/compass.png)
+
+]
+---
+name:quickwins-mysql
+.left-column[
+  ## Quick Wins
+  ### - exemple 1
+  ### - exemple 2
+]
+.right-column[
+  Lancement d'une base MySQL
+
+  ```
+  docker container run \
+  -e MYSQL_ROOT_PASSWORD=pwd \
+  -p 3306:3306 \
+  -d mysql:5.7
+  ```
+
+  La base est disponible localement
+
+  ![MySQL Workbench](./images/mysql-workbench.png)
+]
+---
+name:quickwins-wordpress
+.left-column[
+  ## Quick Wins
+  ### - exemple 1
+  ### - exemple 2
+  ### - exemple 3
+]
+.right-column[
+  Le fichier suivant décrit *wordpress* comme une application composée par 2 services:
+  - l'interface web
+  - la base de données
+
+  ```
+  version: '3.1'
+    services:
+      wordpress:
+        image: wordpress
+        restart: always
+        ports:
+          - 8080:80
+        environment:
+          WORDPRESS_DB_PASSWORD: example
+    mysql:
+      image: mysql:5.7
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: example
+  ```
+
+  Le lancement se fait avec Docker Compose
+
+  ```
+  $ docker-compose up
+  ```
+]
+---
+count: false
+.left-column[
+  ## Quick Wins
+  ### - exemple 1
+  ### - exemple 2
+  ### - exemple 3
+]
+.right-column[
+![Wordpress setup](./images/wp1.png)
+]
+---
+count: false
+.left-column[
+  ## Quick Wins
+  ### - exemple 1
+  ### - exemple 2
+  ### - exemple 3
+]
+.right-column[
+![Wordpress Admin UI](./images/wp2.png)
+]
+---
+count: false
+.left-column[
+  ## Quick Wins
+  ### - exemple 1
+  ### - exemple 2
+  ### - exemple 3
+]
+.right-column[
+![Wordpress Web Site](./images/wp3.png)
+]
+---
+name: containers
+class: center, middle, inverse
+# 2. Les containers Linux
+![Container](./images/container.png)
+---
+.left-column[
+  ## Processus
+]
+.right-column[
+Un container Linux est un processus 
+
+- qui a sa propre vision du système
+
+- isolé des autres processus
+
+- limité dans sa consommation de resources
+
+Un container est construit à partir de 2 technologies Linux
+
+- les *namespaces*
+
+- les *control groups*
+]
+---
+.left-column[
+  ## Processus
+  ## Namespaces
+]
+.right-column[
+Afin de limiter ce que peux voir un processus
+
+  - PID: isolation de l'arborescence des processus
+
+  - NET: pile réseau dédiée
+
+  - IPC: communication inter processus
+
+  - UTS: nom de la machine
+
+  - MOUNT: table de montage
+
+  - USER: isolation des users de l'hôte
+]
+---
+.left-column[
+  ## Processus
+  ## Namespaces
+  ## cgroups
+]
+.right-column[
+Afin de limiter l'utilisation des ressources
+
+  - CPU
+
+  - RAM
+
+  - Network
+
+  - ...
+]
+---
+name: images
+class: center, middle, inverse
+# 3. Les images Docker
+![Image layers](./images/image_layers.png)
+---
+.left-column[
+  ## Définition
+]
+.right-column[
+- Ensemble de layers constituant un système de fichiers
+
+- Eléments pour faire tourner une application
+
+  - une distribution Linux (JeOS)
+
+  - une environnement d'exécution (Node.js, Ruby, ...)
+
+  - des dépendances applicatives (node_modules, gems, ...)
+
+  - le code applicatif
+
+- Template pour la création de containers
+]
+---
+count: false
+.left-column[
+  ## Définition
+  ## Docker Hub
+]
+.right-column[
+- Repository officiel des images Docker
+
+- [https://hub.docker.com](https://hub.docker.com)
+
+- Images officielles
+
+  - distributions linux (Ubuntu, Debian, Fedora, CentOS, Alpine, ...)
+
+  - bases de données (Mongo, MySQL, Postgres, Cassandra, ...)
+
+  - environnements d'exécution (Node.js, Java, Ruby, Python, ...)
+
+  - ...
+
+- Vos propres images
+
+  - publiques
+
+  - privées
+]
+---
+.left-column[
+  ## Définition
+  ## Docker Hub
+  ## Dockerfile
+]
+.right-column[
+- Fichier texte
+
+- Ensemble d'instructions
+  - FROM
+
+  - COPY
+
+  - RUN
+
+  - EXPOSE
+
+  - ENTRYPOINT
+
+  - CMD
+
+  - ...
+
+- Recette pour la création d'une image
+]
+---
+.left-column[
+  ## Définition
+  ## Docker Hub
+  ## Dockerfile
+  ## Exemple
+]
+.right-column[
+  Serveur HTTP avec Node.js (index.js)
+
+  ```
+  var express = require('express');
+  var util    = require('util');
+  var app = express();
+  app.get('/', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end(util.format("%s - %s", new Date(), 'Got Request'));
+  });
+  app.listen(process.env.PORT || 80);
+  ```
+
+  Fichier de dépendances (package.json)
+
+  ```
+  {
+    "name": "testnode",
+    "version": "0.0.1",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js"
+    },
+    "dependencies": {  "express": "^4.14.0" }
+  }
+  ```
+]
+---
+count: false
+.left-column[
+  ## Définition
+  ## Docker Hub
+  ## Dockerfile
+  ## Exemple
+]
+
+.right-column[
+  Fichier Dockerfile
+
+  ```
+  # Image de base
+  FROM node:6.10.3
+
+  # Copie de la liste des dependances
+  COPY package.json /app/package.json
+
+  # Installation / compilation des dependances
+  RUN cd /app && npm install
+
+  # Copie du code applicatif
+  COPY . /app/
+
+  # Exposition du port HTTP
+  EXPOSE 80
+
+  # Positionnement du répertoire de travail
+  WORKDIR /app
+
+  # Commande exécutee au lancement d’un container
+  CMD ["npm", "start"]
+  ```
+]
+---
+count: false
+.left-column[
+  ## Définition
+  ## Docker Hub
+  ## Dockerfile
+  ## Exemple
+]
+.right-colunm[
+  Création de l'image
+  ```
+  docker image build -t app:1.0 .
+  ```
+
+  Lancement d'un container
+  ```
+  docker container run -p 8080:80 app:1.0
+  ```
+
+  Utilisation du service
+  ```
+  curl localhost:8080/
+  Fri Nov 10 2017 12:20:07 GMT+0000 (UTC) - Got HTTP Get Request
+  ```
+]
+---
+class: center, middle, inverse
+# Exercices
+
+[Lab en ligne](http://labs.techwhale.io/images-creation-fr/)  /  [En local](https://github.com/lucj/docker-exercices/tree/master/3.Images)
+
+---
+name: components
+class: center, middle, inverse
+# 4. Les composants
+---
+.left-column[
+  ## Architecture
+]
+.right-column[
+- Client / Serveur
+
+- Installés en même temps
+
+- Communication via
+
+  - socket unix /var/run/docker.sock (défaut)
+
+  - socket tcp
+
+.center[
+  ![Docker components](./images/docker-daemon.png)
+]
+]
+---
+.left-column[
+  ## Architecture
+  ## Serveur
+]
+.right-column[
+- Lancé par systemd / SystemV
+
+- Expose une API Rest
+
+- Gestion des
+
+  - containers
+
+  - images
+
+  - volumes
+
+  - network
+
+  - ...
+
+- Nombreuses options de démarrage
+
+- [https://docs.docker.com/engine/reference/run/](https://docs.docker.com/engine/reference/run/)
+]
+---
+.left-column[
+## Architecture
+## Serveur
+## Client
+]
+.right-column[
+- Communique avec le serveur local via une socket unix
+
+- Communique avec un serveur distant via socket tcp
+
+- $DOCKER_HOST pour cibler un serveur distant
+]
+---
+.left-column[
+## Architecture
+## Serveur
+## Client
+## Flow
+]
+.right-column[
+![Docker components](./images/flow.png)
+]
+---
+name: base-commands
+class: center, middle, inverse
+# 5. Les commandes de base
+---
+.left-column[
+  ### run
+]
+.right-column[
+Lancement de containers à partir d'une image
+
+*-d* : lancement en background
+
+```
+docker container run -d nginx
+```
+
+*-p* : exposition d'un port sur la machine hôte
+
+```
+docker container run -d -p 80:80 nginx
+```
+
+*-ti*: shell interactif
+
+```
+docker container run -ti alpine
+```
+
+*--name*: nom du container
+
+```
+docker container run --name app -d -p 80:80 app:1.0 
+```
+
+Toutes les options disponibles:
+
+```
+docker container run --help
+```
+]
+---
+.left-column[
+  ### run
+  ### ls
+]
+.right-column[
+Liste les containers en exécution sur la machine
+
+```
+docker container ls
+CONTAINER ID  IMAGE   COMMAND                 CREATED      STATUS                    PORTS                  NAMES
+c43bcbf1b6af  app:1.0 "npm start"             2 hours ago  Up 2 hours                0.0.0.0:8080->80/tcp   silly_yonath
+```
+
+Liste les containers en exécution ET ceux arrêtés
+```
+docker container ls -a
+CONTAINER ID  IMAGE   COMMAND                 CREATED      STATUS                    PORTS                  NAMES
+427189278d78  nginx   "nginx -g 'daemon ..."  1 hour ago   Exited (0) 1 second ago                          distracted_benz
+c43bcbf1b6af  app:1.0 "npm start"             2 hours ago  Up 2 hours                0.0.0.0:8080->80/tcp   silly_yonath
+```
+
+Liste les ids des containers en exécution ET arrêtés
+```
+docker container ls -q
+427189278d78
+c43bcbf1b6af
+```
+]
+---
+.left-column[
+  ### run
+  ### ls
+  ### inspect
+]
+.right-column[
+Ensemble des informations liées au container
+
+- structure json
+
+- meta données
+
+- état
+
+- configuration
+
+- network
+
+
+```
+docker container inspect c43bcbf1b6af
+```
+
+```
+docker container inspect app
+```
+]
+---
+.left-column[
+  ### run
+  ### ls
+  ### inspect
+  ### logs
+]
+.right-column[
+Entrées de log générées par le container
+
+```
+docker container logs c43bcbf1b6af
+npm info it worked if it ends with ok
+npm info using npm@3.10.10
+npm info using node@v6.10.3
+npm info lifecycle testnode@0.0.1~prestart: testnode@0.0.1
+npm info lifecycle testnode@0.0.1~start: testnode@0.0.1
+
+> testnode@0.0.1 start /app
+> node index.js
+```
+
+Fonctionne avec l'ID ou le nom du container
+]
+---
+.left-column[
+  ### run
+  ### ls
+  ### inspect
+  ### logs
+  ### exec
+]
+.right-column[
+- Lancement d'un processus dans un container actif
+
+- Utile pour débugger 
+
+- Fonctionne avec l'ID ou le nom du container
+
+Exemple: lancement d'un shell intéractif
+
+```
+docker container exec -ti app bash
+root@c43bcbf1b6af:/app# ls
+Dockerfile  index.js  node_modules  package.json
+```
+]
+---
+.left-column[
+  ### run
+  ### ls
+  ### inspect
+  ### logs
+  ### exec
+  ### stop
+]
+.right-column[
+- Stoppe un container en exécution
+
+- Fonctionne avec l'ID ou le nom du container
+
+```
+docker container stop app
+```
+
+- Peut s'appliquer sur un ensemble de containers
+
+```
+docker container stop $(docker container ls -q)
+```
+]
+---
+.left-column[
+  ### run
+  ### ls
+  ### inspect
+  ### logs
+  ### exec
+  ### stop
+  ### rm
+]
+.right-column[
+- Supprime un container déjà arrêté
+  
+- Fonctionne avec l'ID ou le nom du container
+
+```
+docker container rm app
+```
+
+- Peut s'appliquer sur un ensemble de containers
+
+```
+docker container rm $(docker container ls -q)
+```
+
+- Option *-f* pour forcer l'arrêt
+
+```
+docker container rm -f $(docker container ls -q)
+```
+]
+---
+class: center, middle, inverse
+# Exercices
+
+[Lab en ligne](http://labs.techwhale.io/containers-base-commands-fr/)  /  [En local](https://github.com/lucj/docker-exercices/blob/master/2.Plateforme/commandes_de_base.md)
+---
+name: questions
+class: center, middle, inverse
+# Des questions ?
+---
+name: thanks
+class: center, middle, inverse
+# Merci de votre attention
+.footnote[Présentation réalisée avec [remark](http://github.com/gnab/remark)]
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js" type="text/javascript">
+    <script>
+      var hljs = remark.highlighter.engine;
+    </script>
+    <script src="remark.language.js"></script>
+    <script>
+      var slideshow = remark.create({
+          highlightStyle: 'monokai',
+          highlightLanguage: 'remark',
+          highlightLines: true
+        }) ;
+    </script>
+    <script>
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-44561333-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script');
+        ga.src = 'https://ssl.google-analytics.com/ga.js';
+        var s = document.scripts[0];
+        s.parentNode.insertBefore(ga, s);
+      }());
+    </script>
+  </body>
+</html>
